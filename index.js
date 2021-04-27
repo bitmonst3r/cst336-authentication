@@ -5,18 +5,48 @@ const bcrypt = require("bcrypt");
 const mysql = require("mysql");
 
 // ejs as templating engine
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
+app.use(express.static("public"));
+app.use(express.urlencoded({extended:true}));
 
 //setting params to use sessions
+app.set('trust proxy', 1); // trust first proxy
 app.use(session({
   secret: "top secret!",
-  resave: true,
-  saveUninitialized: true
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true }
 }));
 
 // root route
 app.get("/", function (req, res) {
-  res.render("index");
+   res.render("login", {"error":""});
+});
+
+app.get("/admin", function(req, res){
+  if (req.session.authenticated) {
+    res.render("admin");
+  } else {
+    res.redirect("/");
+  }
+});
+
+app.post("/login", async function (req, res) {
+  let username = req.body.username;
+  let password = req.body.password;
+  console.log("username:" + username);
+  console.log("password:" + password);
+
+  let hashedPwd = "$2a$10$Zr7WyM2tGnm3rIL0rgC5GelS9FCGkWz0ZmzfZBRCi.I5wx0oSgogW";
+
+  let pwdMatch = await bcrypt.compare(password, hashedPwd);
+
+  if (pwdMatch) {
+    req.session.authenticated = true;
+    res.render("home"); 
+  } else {
+    res.render("login", {"error":"wrong credentials"});
+  }
 });
 
 // Tests if DB is connected
