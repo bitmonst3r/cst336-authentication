@@ -36,11 +36,16 @@ app.post("/login", async function (req, res) {
   let password = req.body.password;
   console.log("username:" + username);
   console.log("password:" + password);
+  let hashedPwd = "";
+  let sql = `SELECT * FROM users WHERE username = ?`;
+  let rows = executeSQL(sql, [username]);
 
-  let hashedPwd = "$2a$10$Zr7WyM2tGnm3rIL0rgC5GelS9FCGkWz0ZmzfZBRCi.I5wx0oSgogW";
+  if (rows.length > 0) {
+    hashedPwd = rows[0].password;
+    console.log(hashedPwd);
+  }
 
   let pwdMatch = await bcrypt.compare(password, hashedPwd);
-
   if (pwdMatch) {
     req.session.authenticated = true;
     res.render("home"); 
@@ -68,11 +73,11 @@ async function executeSQL(sql, params){
 
 function dbConnection(){
    const pool = mysql.createPool({
-      Host: "u3r5w4ayhxzdrw87.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
-      User: "egolyub8c6uqn3h7",
-      Password: "bawg468ex0o83xu6",
-      Database: "yptykv9puaie0t38",
-      Port: "3306"
+      host: "u3r5w4ayhxzdrw87.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
+      user: "egolyub8c6uqn3h7",
+      password: "bawg468ex0o83xu6",
+      database: "yptykv9puaie0t38",
+      port: "3306"
    }); 
    return pool;
 
